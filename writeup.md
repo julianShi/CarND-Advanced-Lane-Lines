@@ -45,9 +45,8 @@ The following opencv method is used in `LanePipeline.py` for undistortion.
 ```python
 undist = cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
 ```
-![](./output_images/lane_original.jpg =378x)
-
-![](./output_images/lane_undistort.png )
+<img src="./output_images/lane_original.jpg" alt="Drawing" style="width: 378px;"/>
+<img src="./output_images/lane_undistort.png" alt="Drawing" style="width: 378px;"/>
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
@@ -56,7 +55,8 @@ I used the saturation channel of the colorful image, as the white and yellow lan
 ```python
 image = cv2.cvtColor(image_undistort,cv2.COLOR_RGB2HLS)[:,:,2]
 ```
-![](./output_images/lane_saturation.png "")
+
+<img src="./output_images/lane_saturation.png" style="width: 378px;"/>
 
 The edges of the lanes are sharp. Sobel method is a good choice to find the lanes from the backgroud. In the code, the `cv2.Sobel` function is used to calculate the absolute gradient. The image is converted to a binary two-dimensional ararry. 
 
@@ -97,7 +97,8 @@ The left and right lane has been very distinct in the binary image. By inviding 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
 Instead of using the proposed method to segment the images horizontally, and using the center points, I randomly sampled 100 points as the source of polyfitting. This method helped to overcome the issue when the lanes are not continuous. The light region on the following image is the detected lane. 
-![](./output_images/lane_fillpoly.png "")
+
+<img src="./output_images/lane_fillpoly.png" style="width: 378px;"/>
 
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
@@ -113,7 +114,8 @@ self.perspectiveTransform_inverse = cv2.getPerspectiveTransform(dst, src)
 unwarped = cv2.warpPerspective(img, self.perspectiveTransform_inverse, self.img_size)
 ```
 Put the detected lane on the undistorted image, you see how accurate the lane detection is. 
-![](./output_images/lane_found.png "")
+
+<img src="./output_images/lane_found.png" style="width: 378px;"/>
 
 ---
 
@@ -140,8 +142,10 @@ But in lane detection in videos, history information can be used to augment data
 The `LanePipeline` class in `LanePipeline.py` has queue type attributes to "remember" the sampled lane points up to certain number of frames. Then, the lane marking sample points form a continous curve. There is no drastic change of lane detecting due to false info. 
 
 The following edge image and warpped image visualized the second problem: 
-![](./output_images/lane_edges_blurry.png "")
-![](./output_images/lane_warp_blurry.png "")
+
+<img src="./output_images/lane_edges_blurry.png" style="width: 378px;"/>
+<img src="./output_images/lane_warp_blurry.png" style="width: 378px;"/>
+
 The wrong edges of tree shadow has scatterred the sample points. The fitted polynomial curves won't tell the real lane marking from the shadow. It will be wise to dispose this frame at this moment. The quality of the fitting is measured by the mean square error. This philosophy is implemented in the following snipped of codes in `LanePipeline.py`. 
 
 ```python
