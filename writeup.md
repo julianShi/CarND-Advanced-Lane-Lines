@@ -117,6 +117,23 @@ Put the detected lane on the undistorted image, you see how accurate the lane de
 
 <img src="./output_images/lane_found.png" style="width: 378px;"/>
 
+#### 7 curvature
+Radius of the road at the position of the vehicle is calculated according to the fitted second-order polynomial function. The following scale factors are chosen
+
+```python
+        ym_per_pix = 60./720 # meters per pixel in y dimension
+        xm_per_pix = 3.7/900 # meters per pixel in x dimension
+```
+which yields the radius of the left and right lane borders as follows
+
+```
+left_curverad: 5155.620527335683 m
+right_curverad: 2463.7397387419674 m
+car position: -0.22303237422553346 m
+```
+
+The two values are not the same due to fitting errors. But they satisfy the [curve regulation](http://onlinemanuals.txdot.gov/txdotmanuals/rdw/horizontal_alignment.htm#BGBHGEGC)
+
 ---
 
 ### Pipeline (video)

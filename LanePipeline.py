@@ -22,7 +22,7 @@ class LanePipeline():
 
         offset = 0 # offset for dst points
     #     src = np.float32([[556,463], [756,464], [1117,597],[296,597]])
-        src = np.float32([[553,465], [727,465], [1237,700],[43,700]])
+        src = np.float32([[553,459], [727,459], [1237,700],[43,700]])
         dst = np.float32([[offset, offset], [self.img_size[0]-offset, offset], 
                                      [self.img_size[0]-offset, self.img_size[1]-offset], 
                                      [offset, self.img_size[1]-offset]])
@@ -77,7 +77,7 @@ class LanePipeline():
         poly_coeffient = np.polyfit(I,J,2)
         Y = np.array(range(self.img_size[1]))
         # X = poly_coeffient[0]*(Y**2) + poly_coeffient[1]*Y + poly_coeffient[2]
-        X = np.int_(np.polyval(poly_coeffient,Y))
+        X = np.polyval(poly_coeffient,Y)
         J_eval = np.polyval(poly_coeffient,I) 
         error = ((J_eval-J)**2).mean()
         if (error>10000):
@@ -97,6 +97,29 @@ class LanePipeline():
                 if (j > left_fitx[i] and j < right_fitx[i]+self.img_size[0]/2 ):
                     road_binary[i,j] = 1
         return road_binary
+
+    def curvature(self,image_warp):
+        # Define conversions in x and y from pixels space to meters
+        ym_per_pix = 60./720 # meters per pixel in y dimension
+        xm_per_pix = 3.7/900 # meters per pixel in x dimension
+
+        left_I,left_J = self._cv_sample(image_warp[:,:self.img_size[0]/2])
+        right_I, right_J = self._cv_sample(image_warp[:,self.img_size[0]/2:])
+        leftx, ploty = self._polyfit(left_I,left_J)
+        rightx, ploty = self._polyfit(right_I,right_J)
+        # Fit new polynomials to x,y in world space
+        left_fit_cr = np.polyfit(ploty*ym_per_pix, leftx*xm_per_pix, 2)
+        right_fit_cr = np.polyfit(ploty*ym_per_pix, rightx*xm_per_pix, 2)
+        # Calculate the new radii of curvature
+        y_eval=self.img_size[1]
+        left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
+        right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
+        # Now our radius of curvature is in meters
+        print('left_curverad: '+str(left_curverad)+' m')
+        print('right_curverad: '+str(right_curverad)+' m')
+        position = (self.img_size[0]/2 - (rightx[-1]+leftx[-1]+self.img_size[0]/2)/2) * xm_per_pix
+        print('car position: '+str(position)+' m')
+        # Example values: 632.1 m    626.2 m
 
     def polyfill_video(self,image_warp):
         left_I,left_J = self._cv_sample(image_warp[:,:self.img_size[0]/2])
@@ -122,6 +145,7 @@ class LanePipeline():
 
     def lane_in_image(self,image_original):
         # three-channel image
+        self.number_sample=40
         # return the found lane on the original image
         image_undistort = self.undistort(image_original)
         # Convert RGB to the saturation channel 
@@ -129,10 +153,9 @@ class LanePipeline():
         # Find the edges 
         image = self.abs_sobel_thresh(image)
         # Convert to the bird-eye view
-        image = self.warp(image)
-        plt.imshow(image)
-        plt.show()
-        road_binary = self.polyfill_image(image)
+        image_warp = self.warp(image)
+        self.curvature(image_warp)
+        road_binary = self.polyfill_image(image_warp)
         # unwarp the retrieved lane
         road_binary_unwarp = self.unwarp(road_binary)
         # Stack the two image layers
