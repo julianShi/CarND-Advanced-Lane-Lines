@@ -45,7 +45,7 @@ The following opencv method is used in `LanePipeline.py` for undistortion.
 ```python
 undist = cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
 ```
-![](./output_images/lane_original.jpg )
+![](./output_images/lane_original.jpg =378x)
 
 ![](./output_images/lane_undistort.png )
 
@@ -88,8 +88,10 @@ self.perspectiveTransform = cv2.getPerspectiveTransform(src, dst)
 warped = cv2.warpPerspective(img, self.perspectiveTransform, self.img_size)
 ```
 
-This resulted in the following image
+The warp of perspective results in two approximately parallel lines. 
+
 ![](./output_images/lane_bird_eye.png "")
+
 The left and right lane has been very distinct in the binary image. By inviding the image into the left half and the right half, the curves of the left lane and right lane can be detected respectively. 
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
