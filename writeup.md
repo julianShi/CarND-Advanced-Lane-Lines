@@ -15,7 +15,7 @@ The goals / steps of this project are the following:
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
-[//]: # (Image References)
+[//]: # "Image References"
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 
@@ -45,8 +45,9 @@ The following opencv method is used in `LanePipeline.py` for undistortion.
 ```python
 undist = cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
 ```
-<img src="./output_images/lane_original.jpg" alt="Drawing" style="width: 378px;"/>
-<img src="./output_images/lane_undistort.png" alt="Drawing" style="width: 378px;"/>
+| <img src="./test_images/straight_lines2.jpg" alt="Drawing"  width="100%"/> | <img src="./output_images/straight_lines2_undistort.jpg" alt="Drawing"  width="100%"/> |
+| :----------------------------------------------------------: | :----------------------------------------------------------: |
+|                           Original                           |                         Undistorted                          |
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
@@ -56,7 +57,11 @@ I used the saturation channel of the colorful image, as the white and yellow lan
 image = cv2.cvtColor(image_undistort,cv2.COLOR_RGB2HLS)[:,:,2]
 ```
 
-<img src="./output_images/lane_saturation.png" style="width: 378px;"/>
+The demostrated below are HLS channels of an image with tree shadow illusion. The comparision favors the saturation channel which distinguish the lane lines well from the background. 
+
+| ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test5_hue.jpg) | ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test5_lightness.jpg) | ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test5_saturation.jpg) |
+| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|                             Hue                              |                          Lightness                           |                          Saturation                          |
 
 The edges of the lanes are sharp. Sobel method is a good choice to find the lanes from the backgroud. In the code, the `cv2.Sobel` function is used to calculate the absolute gradient. The image is converted to a binary two-dimensional ararry. 
 
@@ -77,7 +82,14 @@ The edges of the lanes are sharp. Sobel method is a good choice to find the lane
         return binary_output
 ```
 A small kernel size and a high lower threshold is a good choice to highlight the lanes. 
-![](./output_images/lane_edges.png "")
+
+The following shows the comparison of lane marker detection using the lightness and using the spatial gradient of the lightness. The comparison shows that the edge helps to remove the large portions of high-saturaton parts like the sky from the image. 
+
+| ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test1_binary.jpg) | ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test1_edge.jpg) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| threshold = 100, saturation channnel                         | kernel = 5, threshold = 50, gradient of saturation           |
+
+
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
@@ -90,7 +102,9 @@ warped = cv2.warpPerspective(img, self.perspectiveTransform, self.img_size)
 
 The warp of perspective results in two approximately parallel lines. 
 
-![](./output_images/lane_bird_eye.png "")
+| ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/straight_lines1_mask.jpg) | ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/straight_lines1_warp.jpg) |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+|                                                              |                                                              |
 
 The left and right lane has been very distinct in the binary image. By inviding the image into the left half and the right half, the curves of the left lane and right lane can be detected respectively. 
 
