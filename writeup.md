@@ -59,7 +59,7 @@ image = cv2.cvtColor(image_undistort,cv2.COLOR_RGB2HLS)[:,:,2]
 
 The demostrated below are HLS channels of an image with tree shadow illusion. The comparision favors the saturation channel which distinguish the lane lines well from the background. 
 
-| ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test5_hue.jpg) | ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test5_lightness.jpg) | ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test5_saturation.jpg) |
+| ![](output_images/test5_hue.jpg) | ![](output_images/test5_lightness.jpg) | ![](output_images/test5_saturation.jpg) |
 | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
 |                             Hue                              |                          Lightness                           |                          Saturation                          |
 
@@ -85,7 +85,7 @@ A small kernel size and a high lower threshold is a good choice to highlight the
 
 The following shows the comparison of lane marker detection using the lightness and using the spatial gradient of the lightness. The comparison shows that the edge helps to remove the large portions of high-saturaton parts like the sky from the image. 
 
-| ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test1_binary.jpg) | ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/test1_edge.jpg) |
+| ![](output_images/test1_binary.jpg) | ![](output_images/test1_edge.jpg) |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | threshold = 100, saturation channnel                         | kernel = 5, threshold = 50, gradient of saturation           |
 
@@ -102,7 +102,7 @@ warped = cv2.warpPerspective(img, self.perspectiveTransform, self.img_size)
 
 The warp of perspective results in two approximately parallel lines. 
 
-| ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/straight_lines1_mask.jpg) | ![](/hdd/git/CarND-Advanced-Lane-Lines/output_images/straight_lines1_warp.jpg) |
+| ![](output_images/straight_lines1_mask.jpg) | ![](output_images/straight_lines1_warp.jpg) |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 |                                                              |                                                              |
 
@@ -172,24 +172,19 @@ But in lane detection in videos, history information can be used to augment data
 
 The `LanePipeline` class in `LanePipeline.py` has queue type attributes to "remember" the sampled lane points up to certain number of frames. Then, the lane marking sample points form a continous curve. There is no drastic change of lane detecting due to false info. 
 
-The following edge image and warpped image visualized the second problem: 
+The image visualized the second problem. At the upper right image, the purple region is the warpped image. The white dots are the sampled lane marker data, including the data collected from a few previous frames, like the previous ten frames. If the current frame is too blurry, this frame will be discarded. We continue using previous information. The transparent green band is the detected lane. The image shows that the lane detection is not affected by the wrong frame by too much. 
 
-<img src="./output_images/lane_edges_blurry.png" style="width: 378px;"/>
-<img src="./output_images/lane_warp_blurry.png" style="width: 378px;"/>
+| ![](./output_images/project_video_discard.png) |
+| ------------------------------------------------------------ |
+| Discarded frame where lane markers are blurry|
 
 The wrong edges of tree shadow has scatterred the sample points. The fitted polynomial curves won't tell the real lane marking from the shadow. It will be wise to dispose this frame at this moment. The quality of the fitting is measured by the mean square error. This philosophy is implemented in the following snipped of codes in `LanePipeline.py`. 
 
 ```python
-    def _polyfit(self,I,J):
-        poly_coeffient = np.polyfit(I,J,2)
-        Y = np.array(range(self.img_size[1]))
-        # X = poly_coeffient[0]*(Y**2) + poly_coeffient[1]*Y + poly_coeffient[2]
-        X = np.int_(np.polyval(poly_coeffient,Y))
-        J_eval = np.polyval(poly_coeffient,I) 
-        error = ((J_eval-J)**2).mean()
-        if (error>10000):
-            raise Exception('Warning: the lanes are blurry.')
-        return X,Y
+    if(((left_J_val-left_J)**2).mean()>10000):
+        # Evaluate the smaples of this frame. Discard largely scattered samples
+        self.left_I_deque.pop()
+        self.left_J_deque.pop()        
 ```
 
 The sharp curve is the major issue in `harder_challenge_video.mp4`, which is not solved in this project yet. High level solutions above computer vision is wanted in dealing with the complexity. 
