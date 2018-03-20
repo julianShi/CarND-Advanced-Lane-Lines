@@ -4,6 +4,8 @@
 
 **Advanced Lane Finding Project**
 
+Please read [`LanePipeLine.py`](LanePipeLine.py) for the library of the pipeline. An example script using the library is in  [`main.py`](main.py). 
+
 The goals / steps of this project are the following:
 
 * Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
